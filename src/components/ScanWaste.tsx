@@ -15,6 +15,7 @@ export function ScanWaste() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<WasteClassification | null>(null);
+  const [categoryIndex, setCategoryIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +31,7 @@ export function ScanWaste() {
   };
 
   const mockAnalyzeWaste = async (): Promise<WasteClassification> => {
-    // Mock AI classification - randomly select a category for demo
+    // Mock AI classification - returns categories in sequence for demo
     const categories: WasteClassification[] = [
       {
         category: 'recyclable',
@@ -64,7 +65,7 @@ export function ScanWaste() {
       }
     ];
     
-    return categories[Math.floor(Math.random() * categories.length)];
+    return categories[categoryIndex];
   };
 
   const handleAnalyze = async () => {
@@ -76,6 +77,8 @@ export function ScanWaste() {
       await new Promise(resolve => setTimeout(resolve, 2000));
       const classification = await mockAnalyzeWaste();
       setResult(classification);
+      // Move to next category in sequence (cycles back to 0 after 4)
+      setCategoryIndex((prev) => (prev + 1) % 5);
     } catch (error) {
       console.error('Analysis failed:', error);
     } finally {
