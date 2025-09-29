@@ -1,12 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { ScanWaste } from "@/components/ScanWaste";
+import { ReportsDashboard } from "@/components/ReportsDashboard";
+import { AwarenessTips } from "@/components/AwarenessTips";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<'scan' | 'reports' | 'tips'>('scan');
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      <main className="container mx-auto px-4 py-8">
+        {activeTab === 'scan' && <ScanWaste />}
+        {activeTab === 'reports' && <ReportsDashboard />}
+        {activeTab === 'tips' && <AwarenessTips />}
+      </main>
+      
+      <footer className="border-t border-border mt-16 py-8">
+        <div className="container mx-auto px-4 text-center text-muted-foreground">
+          <p className="text-sm">
+            CleanScan - AI-Powered Waste Classification for a Cleaner Future
+          </p>
+          <p className="text-xs mt-2">
+            Helping citizens, NGOs, and municipalities improve waste management through technology
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
