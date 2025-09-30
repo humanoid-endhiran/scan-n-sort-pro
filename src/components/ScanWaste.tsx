@@ -36,7 +36,7 @@ export function ScanWaste() {
   };
 
   const mockAnalyzeWaste = async (): Promise<WasteClassification> => {
-    // Demo outputs - cycles between 2 specific scenarios
+    // Demo outputs - cycles between 3 specific scenarios
     const demoResults: WasteClassification[] = [
       {
         items: [
@@ -83,6 +83,33 @@ export function ScanWaste() {
           }
         ],
         tips: ['Clothes in good condition can be donated', 'Batteries must not go in regular trash', 'Separate paper from bindings']
+      },
+      {
+        items: [
+          {
+            category: 'landfill',
+            confidence: 93,
+            instructions: 'Wrap in newspaper and dispose in trash or at local glass disposal',
+            description: 'Broken glass'
+          },
+          {
+            category: 'landfill',
+            confidence: 88,
+            instructions: 'Dispose in regular trash',
+            description: 'Used tissues'
+          },
+          {
+            category: 'recyclable',
+            confidence: 90,
+            instructions: 'Rinse and place in metal recycling bin',
+            description: 'Empty tin can'
+          }
+        ],
+        tips: [
+          'Handle broken glass carefully to avoid injury',
+          'Soiled paper is not recyclable',
+          'Metal cans are highly recyclable if cleaned first'
+        ]
       }
     ];
     
@@ -99,7 +126,7 @@ export function ScanWaste() {
       const classification = await mockAnalyzeWaste();
       setResult(classification);
       // Move to next result in sequence
-      setCategoryIndex((prev) => (prev + 1) % 2);
+      setCategoryIndex((prev) => (prev + 1) % 3);
     } catch (error) {
       console.error('Analysis failed:', error);
     } finally {
