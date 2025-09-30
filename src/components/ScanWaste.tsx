@@ -36,85 +36,57 @@ export function ScanWaste() {
   };
 
   const mockAnalyzeWaste = async (): Promise<WasteClassification> => {
-    // Mock AI classification - returns multiple items for mixed trash
-    const mixedTrashResults: WasteClassification[] = [
-      {
-        items: [
-          {
-            category: 'plastic',
-            confidence: 92,
-            instructions: 'Rinse and place in recycling bin',
-            description: 'Plastic bottle'
-          },
-          {
-            category: 'recyclable',
-            confidence: 88,
-            instructions: 'Flatten and place in recycling bin',
-            description: 'Cardboard box'
-          }
-        ],
-        tips: ['Separate by material type', 'Clean items before recycling', 'Check recycling symbols']
-      },
-      {
-        items: [
-          {
-            category: 'ewaste',
-            confidence: 95,
-            instructions: 'Take to e-waste collection center',
-            description: 'Old smartphone'
-          },
-          {
-            category: 'plastic',
-            confidence: 85,
-            instructions: 'Remove battery first, then recycle plastic',
-            description: 'Plastic phone case'
-          }
-        ],
-        tips: ['Never throw e-waste in regular trash', 'Data wiping recommended', 'Many components are valuable']
-      },
+    // Demo outputs - cycles between 2 specific scenarios
+    const demoResults: WasteClassification[] = [
       {
         items: [
           {
             category: 'organic',
-            confidence: 94,
+            confidence: 95,
             instructions: 'Add to compost bin',
-            description: 'Food scraps'
+            description: 'Vegetable and fruit scraps'
           },
           {
-            category: 'landfill',
-            confidence: 78,
-            instructions: 'Dispose in regular trash',
-            description: 'Soiled napkins'
-          }
-        ],
-        tips: ['Compostable items reduce landfill waste', 'Keep organic separate from recyclables']
-      },
-      {
-        items: [
-          {
             category: 'recyclable',
-            confidence: 91,
-            instructions: 'Clean and place in recycling bin',
-            description: 'Aluminum can'
+            confidence: 89,
+            instructions: 'Flatten and place in paper recycling',
+            description: 'Paper packaging'
           },
           {
             category: 'plastic',
             confidence: 87,
-            instructions: 'Check recycling number before disposal',
-            description: 'Plastic wrapper'
-          },
-          {
-            category: 'landfill',
-            confidence: 82,
-            instructions: 'Dispose in regular trash',
-            description: 'Used tissues'
+            instructions: 'Rinse and recycle if local rules allow',
+            description: 'Plastic wrap or bottle'
           }
         ],
-        tips: ['Sort by material type', 'Aluminum is infinitely recyclable', 'When in doubt, check local guidelines']
+        tips: ['Compost organic waste separately', 'Keep paper dry before recycling', 'Check local recycling symbols']
+      },
+      {
+        items: [
+          {
+            category: 'landfill',
+            confidence: 75,
+            instructions: 'Donate if usable, otherwise dispose in trash',
+            description: 'Old clothing'
+          },
+          {
+            category: 'ewaste',
+            confidence: 94,
+            instructions: 'Drop off at e-waste facility',
+            description: 'Used batteries'
+          },
+          {
+            category: 'recyclable',
+            confidence: 90,
+            instructions: 'Remove staples, recycle with paper',
+            description: 'Magazines and notebooks'
+          }
+        ],
+        tips: ['Clothes in good condition can be donated', 'Batteries must not go in regular trash', 'Separate paper from bindings']
       }
     ];
     
-    return mixedTrashResults[categoryIndex];
+    return demoResults[categoryIndex];
   };
 
   const handleAnalyze = async () => {
@@ -127,7 +99,7 @@ export function ScanWaste() {
       const classification = await mockAnalyzeWaste();
       setResult(classification);
       // Move to next result in sequence
-      setCategoryIndex((prev) => (prev + 1) % 4);
+      setCategoryIndex((prev) => (prev + 1) % 2);
     } catch (error) {
       console.error('Analysis failed:', error);
     } finally {
