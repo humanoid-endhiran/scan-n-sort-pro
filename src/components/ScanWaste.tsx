@@ -110,6 +110,47 @@ export function ScanWaste() {
           'Soiled paper is not recyclable',
           'Metal cans are highly recyclable if cleaned first'
         ]
+      },
+      {
+        items: [
+          {
+            category: 'recyclable',
+            confidence: 91,
+            instructions: 'Rinse and place in metal recycling bin',
+            description: 'Aluminum can'
+          },
+          {
+            category: 'recyclable',
+            confidence: 88,
+            instructions: 'Place in paper recycling',
+            description: 'Printed paper material'
+          },
+          {
+            category: 'organic',
+            confidence: 94,
+            instructions: 'Add to compost bin',
+            description: 'Vegetable scraps'
+          },
+          {
+            category: 'landfill',
+            confidence: 86,
+            instructions: 'Wrap carefully and dispose in trash',
+            description: 'Broken glass'
+          },
+          {
+            category: 'landfill',
+            confidence: 83,
+            instructions: 'Dispose in regular trash',
+            description: 'Used tissue'
+          }
+        ],
+        tips: [
+          'Rinse metal cans before recycling',
+          'Keep paper dry and clean',
+          'Compost organic waste separately',
+          'Do not recycle broken glass',
+          'Soiled tissues belong in the trash'
+        ]
       }
     ];
     
@@ -126,7 +167,7 @@ export function ScanWaste() {
       const classification = await mockAnalyzeWaste();
       setResult(classification);
       // Move to next result in sequence
-      setCategoryIndex((prev) => (prev + 1) % 3);
+      setCategoryIndex((prev) => (prev + 1) % 4);
     } catch (error) {
       console.error('Analysis failed:', error);
     } finally {
