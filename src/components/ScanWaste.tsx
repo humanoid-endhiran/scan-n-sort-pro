@@ -4,10 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WasteResult } from "./WasteResult";
 
-export interface WasteClassification {
+export interface WasteItem {
   category: 'recyclable' | 'organic' | 'plastic' | 'ewaste' | 'landfill';
   confidence: number;
   instructions: string;
+  description: string;
+}
+
+export interface WasteClassification {
+  items: WasteItem[];
   tips: string[];
 }
 
@@ -31,41 +36,85 @@ export function ScanWaste() {
   };
 
   const mockAnalyzeWaste = async (): Promise<WasteClassification> => {
-    // Mock AI classification - returns categories in sequence for demo
-    const categories: WasteClassification[] = [
+    // Mock AI classification - returns multiple items for mixed trash
+    const mixedTrashResults: WasteClassification[] = [
       {
-        category: 'recyclable',
-        confidence: 94,
-        instructions: 'Place in blue recycling bin. Clean and dry before disposal.',
-        tips: ['Remove caps and labels', 'Rinse containers', 'Check local recycling guidelines']
+        items: [
+          {
+            category: 'plastic',
+            confidence: 92,
+            instructions: 'Rinse and place in recycling bin',
+            description: 'Plastic bottle'
+          },
+          {
+            category: 'recyclable',
+            confidence: 88,
+            instructions: 'Flatten and place in recycling bin',
+            description: 'Cardboard box'
+          }
+        ],
+        tips: ['Separate by material type', 'Clean items before recycling', 'Check recycling symbols']
       },
       {
-        category: 'organic',
-        confidence: 89,
-        instructions: 'Add to compost bin or green waste collection.',
-        tips: ['Great for home composting', 'Mix with brown materials', 'Turn compost regularly']
+        items: [
+          {
+            category: 'ewaste',
+            confidence: 95,
+            instructions: 'Take to e-waste collection center',
+            description: 'Old smartphone'
+          },
+          {
+            category: 'plastic',
+            confidence: 85,
+            instructions: 'Remove battery first, then recycle plastic',
+            description: 'Plastic phone case'
+          }
+        ],
+        tips: ['Never throw e-waste in regular trash', 'Data wiping recommended', 'Many components are valuable']
       },
       {
-        category: 'plastic',
-        confidence: 92,
-        instructions: 'Check recycling number. Most can go in recycling bin.',
-        tips: ['Look for recycling symbol', 'Remove food residue', 'Some plastics are not recyclable']
+        items: [
+          {
+            category: 'organic',
+            confidence: 94,
+            instructions: 'Add to compost bin',
+            description: 'Food scraps'
+          },
+          {
+            category: 'landfill',
+            confidence: 78,
+            instructions: 'Dispose in regular trash',
+            description: 'Soiled napkins'
+          }
+        ],
+        tips: ['Compostable items reduce landfill waste', 'Keep organic separate from recyclables']
       },
       {
-        category: 'ewaste',
-        confidence: 96,
-        instructions: 'Take to e-waste collection center. Do not put in regular trash.',
-        tips: ['Data wiping recommended', 'Many components are valuable', 'Check manufacturer take-back programs']
-      },
-      {
-        category: 'landfill',
-        confidence: 78,
-        instructions: 'Dispose in regular trash bin as last resort.',
-        tips: ['Consider reducing similar items', 'Look for reuse opportunities', 'Some components might be recyclable']
+        items: [
+          {
+            category: 'recyclable',
+            confidence: 91,
+            instructions: 'Clean and place in recycling bin',
+            description: 'Aluminum can'
+          },
+          {
+            category: 'plastic',
+            confidence: 87,
+            instructions: 'Check recycling number before disposal',
+            description: 'Plastic wrapper'
+          },
+          {
+            category: 'landfill',
+            confidence: 82,
+            instructions: 'Dispose in regular trash',
+            description: 'Used tissues'
+          }
+        ],
+        tips: ['Sort by material type', 'Aluminum is infinitely recyclable', 'When in doubt, check local guidelines']
       }
     ];
     
-    return categories[categoryIndex];
+    return mixedTrashResults[categoryIndex];
   };
 
   const handleAnalyze = async () => {
@@ -77,8 +126,8 @@ export function ScanWaste() {
       await new Promise(resolve => setTimeout(resolve, 2000));
       const classification = await mockAnalyzeWaste();
       setResult(classification);
-      // Move to next category in sequence (cycles back to 0 after 4)
-      setCategoryIndex((prev) => (prev + 1) % 5);
+      // Move to next result in sequence
+      setCategoryIndex((prev) => (prev + 1) % 4);
     } catch (error) {
       console.error('Analysis failed:', error);
     } finally {

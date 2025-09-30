@@ -2,7 +2,7 @@ import { CheckCircle, Recycle, Leaf, Trash2, Zap, AlertTriangle } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { WasteClassification } from "./ScanWaste";
+import { WasteClassification, WasteItem } from "./ScanWaste";
 
 interface WasteResultProps {
   result: WasteClassification;
@@ -52,31 +52,38 @@ export function WasteResult({ result, onNewScan }: WasteResultProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="text-center">
-          <div className={`inline-flex items-center gap-3 px-6 py-4 rounded-full ${getCategoryColor(result.category)}`}>
-            {getCategoryIcon(result.category)}
-            <div>
-              <div className="text-xl font-bold">{getCategoryName(result.category)}</div>
-              <div className="text-sm opacity-90">{result.confidence}% confidence</div>
+        <div className="space-y-3">
+          <h3 className="font-semibold text-center">Detected Items ({result.items.length})</h3>
+          {result.items.map((item, index) => (
+            <div key={index} className="border border-border rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${getCategoryColor(item.category)}`}>
+                    {getCategoryIcon(item.category)}
+                  </div>
+                  <div>
+                    <div className="font-semibold">{item.description}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {getCategoryName(item.category)} • {item.confidence}% confidence
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground pl-11">
+                {item.instructions}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">Disposal Instructions</h3>
-            <p className="text-muted-foreground">{result.instructions}</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-3">Helpful Tips</h3>
-            <div className="flex flex-wrap gap-2">
-              {result.tips.map((tip, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {tip}
-                </Badge>
-              ))}
-            </div>
+        <div>
+          <h3 className="font-semibold mb-3">Helpful Tips</h3>
+          <div className="flex flex-wrap gap-2">
+            {result.tips.map((tip, index) => (
+              <Badge key={index} variant="secondary" className="text-xs">
+                {tip}
+              </Badge>
+            ))}
           </div>
         </div>
 
