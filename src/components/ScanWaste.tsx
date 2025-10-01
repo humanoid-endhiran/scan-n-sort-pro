@@ -20,7 +20,6 @@ export function ScanWaste() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<WasteClassification | null>(null);
-  const [categoryIndex, setCategoryIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,126 +34,24 @@ export function ScanWaste() {
     }
   };
 
-  const mockAnalyzeWaste = async (): Promise<WasteClassification> => {
-    // Demo outputs - cycles between 3 specific scenarios
-    const demoResults: WasteClassification[] = [
+  const analyzeWaste = async (imageData: string): Promise<WasteClassification> => {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/classify-waste`,
       {
-        items: [
-          {
-            category: 'organic',
-            confidence: 95,
-            instructions: 'Add to compost bin',
-            description: 'Vegetable and fruit scraps'
-          },
-          {
-            category: 'recyclable',
-            confidence: 89,
-            instructions: 'Flatten and place in paper recycling',
-            description: 'Paper packaging'
-          },
-          {
-            category: 'plastic',
-            confidence: 87,
-            instructions: 'Rinse and recycle if local rules allow',
-            description: 'Plastic wrap or bottle'
-          }
-        ],
-        tips: ['Compost organic waste separately', 'Keep paper dry before recycling', 'Check local recycling symbols']
-      },
-      {
-        items: [
-          {
-            category: 'landfill',
-            confidence: 75,
-            instructions: 'Donate if usable, otherwise dispose in trash',
-            description: 'Old clothing'
-          },
-          {
-            category: 'ewaste',
-            confidence: 94,
-            instructions: 'Drop off at e-waste facility',
-            description: 'Used batteries'
-          },
-          {
-            category: 'recyclable',
-            confidence: 90,
-            instructions: 'Remove staples, recycle with paper',
-            description: 'Magazines and notebooks'
-          }
-        ],
-        tips: ['Clothes in good condition can be donated', 'Batteries must not go in regular trash', 'Separate paper from bindings']
-      },
-      {
-        items: [
-          {
-            category: 'landfill',
-            confidence: 93,
-            instructions: 'Wrap in newspaper and dispose in trash or at local glass disposal',
-            description: 'Broken glass'
-          },
-          {
-            category: 'landfill',
-            confidence: 88,
-            instructions: 'Dispose in regular trash',
-            description: 'Used tissues'
-          },
-          {
-            category: 'recyclable',
-            confidence: 90,
-            instructions: 'Rinse and place in metal recycling bin',
-            description: 'Empty tin can'
-          }
-        ],
-        tips: [
-          'Handle broken glass carefully to avoid injury',
-          'Soiled paper is not recyclable',
-          'Metal cans are highly recyclable if cleaned first'
-        ]
-      },
-      {
-        items: [
-          {
-            category: 'recyclable',
-            confidence: 91,
-            instructions: 'Rinse and place in metal recycling bin',
-            description: 'Aluminum can'
-          },
-          {
-            category: 'recyclable',
-            confidence: 88,
-            instructions: 'Place in paper recycling',
-            description: 'Printed paper material'
-          },
-          {
-            category: 'organic',
-            confidence: 94,
-            instructions: 'Add to compost bin',
-            description: 'Vegetable scraps'
-          },
-          {
-            category: 'landfill',
-            confidence: 86,
-            instructions: 'Wrap carefully and dispose in trash',
-            description: 'Broken glass'
-          },
-          {
-            category: 'landfill',
-            confidence: 83,
-            instructions: 'Dispose in regular trash',
-            description: 'Used tissue'
-          }
-        ],
-        tips: [
-          'Rinse metal cans before recycling',
-          'Keep paper dry and clean',
-          'Compost organic waste separately',
-          'Do not recycle broken glass',
-          'Soiled tissues belong in the trash'
-        ]
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: imageData })
       }
-    ];
-    
-    return demoResults[categoryIndex];
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to classify waste');
+    }
+
+    return response.json();
   };
 
   const handleAnalyze = async () => {
@@ -162,14 +59,11 @@ export function ScanWaste() {
     
     setIsAnalyzing(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const classification = await mockAnalyzeWaste();
+      const classification = await analyzeWaste(selectedImage);
       setResult(classification);
-      // Move to next result in sequence
-      setCategoryIndex((prev) => (prev + 1) % 4);
     } catch (error) {
       console.error('Analysis failed:', error);
+      alert(error instanceof Error ? error.message : 'Failed to analyze waste. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
