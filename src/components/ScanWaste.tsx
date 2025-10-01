@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WasteResult } from "./WasteResult";
 
 export interface WasteItem {
-  category: 'recyclable' | 'organic' | 'plastic' | 'ewaste' | 'landfill';
+  category: 'recyclable' | 'organic' | 'landfill' | 'hazardous';
   confidence: number;
-  instructions: string;
   description: string;
 }
 

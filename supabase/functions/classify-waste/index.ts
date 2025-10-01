@@ -38,7 +38,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: 'Analyze this waste image and classify each item you can identify. For each item, determine if it belongs in: recyclable, organic (compost), e-waste, hazardous, or landfill. Provide confidence scores and specific disposal instructions.'
+                text: 'Analyze this waste image and classify each item you can identify into one of these categories: recyclable (clean plastic bottles, cans, glass, paper), organic (food scraps, peels, shells), landfill (used tissue, dirty cloth, unrecyclable plastics), or hazardous (batteries, electronics, sharp objects). For each item, provide a generic description without brand names and a confidence score. Keep descriptions simple and clear.'
               },
               {
                 type: 'image_url',
@@ -65,22 +65,18 @@ serve(async (req) => {
                       properties: {
                         category: {
                           type: 'string',
-                          enum: ['recyclable', 'organic', 'e-waste', 'hazardous', 'landfill']
+                          enum: ['recyclable', 'organic', 'landfill', 'hazardous']
                         },
                         confidence: {
                           type: 'number',
                           description: 'Confidence score from 0-100'
                         },
-                        instructions: {
-                          type: 'string',
-                          description: 'Specific disposal instructions for this item'
-                        },
                         description: {
                           type: 'string',
-                          description: 'Brief description of the item'
+                          description: 'Brief generic description of the item without brand names'
                         }
                       },
-                      required: ['category', 'confidence', 'instructions', 'description']
+                      required: ['category', 'confidence', 'description']
                     }
                   },
                   tips: {
