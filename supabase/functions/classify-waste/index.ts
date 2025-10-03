@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { image } = await req.json();
+    const { image, language = 'english' } = await req.json();
     
     if (!image) {
       throw new Error('No image provided');
@@ -23,6 +23,18 @@ serve(async (req) => {
     }
 
     console.log('Sending image to Gemini for classification...');
+
+    const languageMap: Record<string, string> = {
+      'hindi': 'Hindi (हिन्दी)',
+      'bengali': 'Bengali (বাংলা)',
+      'telugu': 'Telugu (తెలుగు)',
+      'english': 'English'
+    };
+    
+    const selectedLanguage = languageMap[language] || 'English';
+    const languageInstruction = language !== 'english' 
+      ? ` Provide ALL responses (item descriptions and disposal tips) in ${selectedLanguage}.`
+      : '';
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -38,7 +50,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: 'Analyze this waste image and classify each item you can identify into one of these categories: recyclable (clean plastic bottles, cans, glass, paper), organic (food scraps, peels, shells), landfill (used tissue, dirty cloth, unrecyclable plastics), or hazardous (batteries, electronics, sharp objects). For each item, provide a generic description without brand names and a confidence score. Keep descriptions simple and clear.'
+                text: `Analyze this waste image and classify each item you can identify into one of these categories: recyclable (clean plastic bottles, cans, glass, paper), organic (food scraps, peels, shells), landfill (used tissue, dirty cloth, unrecyclable plastics), or hazardous (batteries, electronics, sharp objects). For each item, provide a generic description without brand names and a confidence score. Keep descriptions simple and clear.${languageInstruction}`
               },
               {
                 type: 'image_url',

@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Upload, Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WasteResult } from "./WasteResult";
 
 export interface WasteItem {
@@ -19,6 +20,7 @@ export function ScanWaste() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<WasteClassification | null>(null);
+  const [language, setLanguage] = useState<string>("english");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,7 +35,7 @@ export function ScanWaste() {
     }
   };
 
-  const analyzeWaste = async (imageData: string): Promise<WasteClassification> => {
+  const analyzeWaste = async (imageData: string, selectedLanguage: string): Promise<WasteClassification> => {
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/classify-waste`,
       {
@@ -41,7 +43,7 @@ export function ScanWaste() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ image: imageData })
+        body: JSON.stringify({ image: imageData, language: selectedLanguage })
       }
     );
 
@@ -58,7 +60,7 @@ export function ScanWaste() {
     
     setIsAnalyzing(true);
     try {
-      const classification = await analyzeWaste(selectedImage);
+      const classification = await analyzeWaste(selectedImage, language);
       setResult(classification);
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -86,6 +88,21 @@ export function ScanWaste() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <label className="text-sm font-medium">Language:</label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="hindi">हिन्दी (Hindi)</SelectItem>
+                <SelectItem value="bengali">বাংলা (Bengali)</SelectItem>
+                <SelectItem value="telugu">తెలుగు (Telugu)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {!selectedImage ? (
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
               <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
