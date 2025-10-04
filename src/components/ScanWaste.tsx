@@ -99,6 +99,7 @@ export function ScanWaste() {
                 <SelectItem value="hindi">हिन्दी (Hindi)</SelectItem>
                 <SelectItem value="bengali">বাংলা (Bengali)</SelectItem>
                 <SelectItem value="telugu">తెలుగు (Telugu)</SelectItem>
+                <SelectItem value="tamil">தமிழ் (Tamil)</SelectItem>
               </SelectContent>
             </Select>
           </div>

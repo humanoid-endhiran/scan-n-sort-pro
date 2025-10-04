@@ -28,6 +28,7 @@ serve(async (req) => {
       'hindi': 'Hindi (हिन्दी)',
       'bengali': 'Bengali (বাংলা)',
       'telugu': 'Telugu (తెలుగు)',
+      'tamil': 'Tamil (தமிழ்)',
       'english': 'English'
     };
     
