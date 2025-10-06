@@ -6,14 +6,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { WasteResult } from "./WasteResult";
 
 export interface WasteItem {
-  category: 'recyclable' | 'organic' | 'landfill' | 'hazardous';
+  category: 'recyclable' | 'organic' | 'landfill' | 'hazardous' | 'plastic';
   confidence: number;
   description: string;
+  plasticType?: string;
+}
+
+export interface RecyclingCenter {
+  name: string;
+  type: string;
+  address: string;
 }
 
 export interface WasteClassification {
   items: WasteItem[];
   tips: string[];
+  plasticType?: string;
+  upcyclingIdeas?: string[];
+  nearbyCenters?: RecyclingCenter[];
 }
 
 export function ScanWaste() {
@@ -21,7 +31,55 @@ export function ScanWaste() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<WasteClassification | null>(null);
   const [language, setLanguage] = useState<string>("english");
+  const [location, setLocation] = useState<{ city: string; state: string } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getLocation = async (): Promise<{ city: string; state: string } | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        setLocationError("Geolocation is not supported by your browser");
+        resolve(null);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          try {
+            // Using OpenStreetMap Nominatim for reverse geocoding (free)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+              {
+                headers: {
+                  'User-Agent': 'CleanScan-App'
+                }
+              }
+            );
+            
+            const data = await response.json();
+            const city = data.address.city || data.address.town || data.address.village || data.address.county || "Unknown";
+            const state = data.address.state || "Unknown";
+            
+            const locationData = { city, state };
+            setLocation(locationData);
+            setLocationError(null);
+            resolve(locationData);
+          } catch (error) {
+            console.error("Reverse geocoding failed:", error);
+            setLocationError("Could not determine location");
+            resolve(null);
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setLocationError("Location access denied");
+          resolve(null);
+        }
+      );
+    });
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,7 +93,11 @@ export function ScanWaste() {
     }
   };
 
-  const analyzeWaste = async (imageData: string, selectedLanguage: string): Promise<WasteClassification> => {
+  const analyzeWaste = async (
+    imageData: string, 
+    selectedLanguage: string, 
+    userLocation: { city: string; state: string } | null
+  ): Promise<WasteClassification> => {
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/classify-waste`,
       {
@@ -43,7 +105,11 @@ export function ScanWaste() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ image: imageData, language: selectedLanguage })
+        body: JSON.stringify({ 
+          image: imageData, 
+          language: selectedLanguage,
+          location: userLocation 
+        })
       }
     );
 
@@ -60,7 +126,10 @@ export function ScanWaste() {
     
     setIsAnalyzing(true);
     try {
-      const classification = await analyzeWaste(selectedImage, language);
+      // Get location first
+      const userLocation = await getLocation();
+      
+      const classification = await analyzeWaste(selectedImage, language, userLocation);
       setResult(classification);
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -139,6 +208,18 @@ export function ScanWaste() {
                   className="w-full h-64 object-cover rounded-lg"
                 />
               </div>
+              
+              {location && (
+                <div className="text-sm text-muted-foreground">
+                  📍 Location: {location.city}, {location.state}
+                </div>
+              )}
+              
+              {locationError && (
+                <div className="text-sm text-yellow-600">
+                  ⚠️ {locationError} - Proceeding without location data
+                </div>
+              )}
               
               {!result && (
                 <div className="flex gap-3">

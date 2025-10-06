@@ -11,11 +11,13 @@ serve(async (req) => {
   }
 
   try {
-    const { image, language = 'english' } = await req.json();
+    const { image, language = 'english', location } = await req.json();
     
     if (!image) {
       throw new Error('No image provided');
     }
+    
+    const hasLocation = location && location.city && location.state;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -36,6 +38,17 @@ serve(async (req) => {
     const languageInstruction = language !== 'english' 
       ? ` Provide ALL responses (item descriptions and disposal tips) in ${selectedLanguage}.`
       : '';
+    
+    const locationContext = hasLocation 
+      ? `\n\nUser location: ${location.city}, ${location.state}, India`
+      : '';
+    
+    const plasticInstructions = hasLocation
+      ? `\n\nIf any plastic waste is detected:
+1. Identify the plastic type (PET, HDPE, LDPE, PP, PS, PVC, or Other)
+2. Suggest 2-3 upcycling or reuse ideas suitable for citizens
+3. Recommend 2-3 local NGOs, recyclers, or municipal centers in or near ${location.city}, ${location.state} that handle plastic waste. Include realistic organization names and general addresses.`
+      : '';
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -51,7 +64,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: `Analyze this waste image and classify each item you can identify into one of these categories: recyclable (clean plastic bottles, cans, glass, paper), organic (food scraps, peels, shells), landfill (used tissue, dirty cloth, unrecyclable plastics), or hazardous (batteries, electronics, sharp objects). For each item, provide a generic description without brand names and a confidence score. Keep descriptions simple and clear.${languageInstruction}`
+                text: `Analyze this waste image and classify each item into categories: plastic, recyclable, organic, landfill, or hazardous. For each item, provide a generic description without brand names and a confidence score.${locationContext}${plasticInstructions}${languageInstruction}`
               },
               {
                 type: 'image_url',
@@ -78,7 +91,7 @@ serve(async (req) => {
                       properties: {
                         category: {
                           type: 'string',
-                          enum: ['recyclable', 'organic', 'landfill', 'hazardous']
+                          enum: ['plastic', 'recyclable', 'organic', 'landfill', 'hazardous']
                         },
                         confidence: {
                           type: 'number',
@@ -87,6 +100,10 @@ serve(async (req) => {
                         description: {
                           type: 'string',
                           description: 'Brief generic description of the item without brand names'
+                        },
+                        plasticType: {
+                          type: 'string',
+                          description: 'Type of plastic if category is plastic (PET, HDPE, LDPE, PP, PS, PVC, Other)'
                         }
                       },
                       required: ['category', 'confidence', 'description']
@@ -96,6 +113,27 @@ serve(async (req) => {
                     type: 'array',
                     items: { type: 'string' },
                     description: 'General waste disposal tips relevant to the items detected'
+                  },
+                  plasticType: {
+                    type: 'string',
+                    description: 'Overall plastic type if plastic detected'
+                  },
+                  upcyclingIdeas: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Upcycling or reuse ideas for plastic waste'
+                  },
+                  nearbyCenters: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        type: { type: 'string' },
+                        address: { type: 'string' }
+                      }
+                    },
+                    description: 'Local recycling centers, NGOs, or municipal facilities'
                   }
                 },
                 required: ['items', 'tips']
